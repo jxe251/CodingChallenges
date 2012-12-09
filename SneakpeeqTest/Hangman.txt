@@ -1,6 +1,8 @@
 ==The Hangman==
 
-In this exercise, you will code the game hangman as well as an AI that solves the game. Feel free to use any common programming languages. A simple console I/O would suffice. The requirements are laid out below.
+In this exercise, you will code the game hangman as well as an AI that
+solves the game. Feel free to use any common programming languages. A
+simple console I/O would suffice. The requirements are laid out below.
 
 =The Game=
 Loads a CSV (using | as a separator) with the following format:
@@ -11,19 +13,33 @@ I've a good feeling about this, 5
 
 For each round, the game randomly selects a line
 
-The game would display the punctuations, the locations of the solved letters, "_" for undiscovered letters, # of remaining guesses, and the list of previous guesses.
+The game would display the punctuations, the locations of the solved
+letters, "_" for undiscovered letters, # of remaining guesses, and the
+list of previous guesses.
 
-For simplicity, let's constraint input to only single letter guesses until either all the blanks are filled or the player runs out of guesses. That would be the end of the round.
+For simplicity, let's constraint input to only single letter guesses until
+either all the blanks are filled or the player runs out of guesses. That
+would be the end of the round.
 
-At the end of the round, the game would ask for whether the player wants to continue or quit.
+At the end of the round, the game would ask for whether the player wants
+to continue or quit.
 
 =The AI=
-Interfacing with the game can be through console input/output or have the game providing APIs / function calls. Please outline your strategy and show your run time and memory complexity.
+Interfacing with the game can be through console input/output or have the
+game providing APIs / function calls. Please outline your strategy and
+show your run time and memory complexity.
 
-The focus of this exercise is to evaluate your coding style and structural organization.
+The focus of this exercise is to evaluate your coding style and structural
+organization.
 
-The following questions are not in the scope of this coding project but would be great to share how you'd approach them:
+The following questions are not in the scope of this coding project but
+would be great to share how you'd approach them:
 
     1. What would you change to provide a GUI on this?
-    2. How would you make this into an online multiplayer game (e.g. somewhat like a wheel of fortune game)? How would you architect it to support multiple users playing at the same time? How would you scale this out?
-    3. How would you build a system to scrape off commonly used phrases? Where would you get the sources? How (and how often) would you store them?
+    2. How would you make this into an online multiplayer game (e.g.
+       somewhat like a wheel of fortune game)? How would you architect it
+       to support multiple users playing at the same time? How would you
+       scale this out?
+    3. How would you build a system to scrape off commonly used phrases?
+       Where would you get the sources? How (and how often) would you
+       store them?
