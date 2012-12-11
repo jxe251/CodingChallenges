@@ -3,29 +3,24 @@ from terminal import __UESC__
 
 def to(row, col):
     stdout.write('{0}[{1};{2}H'.format(__UESC__, row, col))
-    stdout.flush()
 
 def home():
-    Cursor.To(0, 0)
+    to(0, 0)
 
-def move(row, col):
+def move(row=None, col=None):
     vert, horiz = '', ''
-    isUp, isFwd = row < 0, col > 0
-    if row != 0:
+    if row != None:
         vert = '{0}[{1}{2}'.format(__UESC__,
-                                   -row if isUp else row,
-                                   'A' if isUp else 'B')
-    if col != 0:
+                                   -row if row < 0 else row,
+                                   'A' if row < 0 else 'B')
+    if col != None:
         horiz = '{0}[{1}{2}'.format(__UESC__,
-                                    col if isFwd else -col,
-                                    'C' if isFwd else 'D')
+                                    col if col > 0 else -col,
+                                    'C' if col > 0 else 'D')
     stdout.write(vert + horiz)
-    stdout.flush()
 
 def save():
     stdout.write('{0}[s'.format(__UESC__))
-    stdout.flush()
 
 def restore():
     stdout.write('{0}[u'.format(__UESC__))
-    stdout.flush()

@@ -1,9 +1,8 @@
 #!/usr/bin/env python3.2
 
-import sys
-import random
-import string
-import display
+from random import choice
+from string import ascii_letters
+import simpledisplay as display
 
 path = 'phrases1.csv'
 
@@ -13,26 +12,20 @@ def _keyboard_exit(method):
             return method(*args, **kw)
         except KeyboardInterrupt:
             print()
+            display.goodbye()
             return
     return wrapper
 
-def _ask(question, IsValid = lambda x: True, tryAgainMsg = 'Please try again.'):
-    while True:
-        sys.stdout.write(question + ' \x1b[K')
-        sys.stdout.flush()
-        ret = input()
-        if IsValid(ret):
-            break
-        print('  ' + tryAgainMsg)
-        sys.stdout.write('\x1b[2A')
-        sys.stdout.flush()
-    
-    sys.stdout.write('\x1b[J')
-    sys.stdout.flush()
-    return ret
-
-IsYN = lambda x: len(x) == 1 and x in 'ynYN'
-IsLetter = lambda x: len(x) == 1 and x in string.ascii_lowercase
+end_if = { 'y' : True, 'n' : False }
+is_yn = lambda c: len(c) == 1 and c in 'yn'
+is_letter = lambda c: len(c) == 1 and c in ascii_letters
+is_new_letter = lambda guessed, state: ( 
+                    lambda c: (
+                        is_letter(c) and
+                        c.lower() not in guessed and
+                        c.lower() not in state
+                    )
+                )
 
 class Hangman:
     phrases = {}
@@ -40,46 +33,61 @@ class Hangman:
     def __init__(self, path):
         inFile = open(path, 'rt')
         for line in iter(inFile):
-            phrase, guesses = map(lambda x: x.strip(), line.split('|'))
-            self.phrases[phrase] = int(guesses)
+            phrase, lives = map(lambda x: x.strip(), line.split('|'))
+            self.phrases[phrase] = int(lives)
 
     @_keyboard_exit
     def Start(self):
-        # config?
-        print("   Welcome to Hangman!")
-        print()
-
+        display.game = self
+        display.title()
         self._game_loop()
 
     def _game_loop(self):
         while True:
-            phrase = random.choice(list(self.phrases.keys()))
-            guesses = self.phrases[phrase]
-            state = '_' * len(phrase)
-            missed = ""
+            self.phrase = choice(list(self.phrases.keys()))
+            self.phrase_lowered = self.phrase.lower()
+            self.state = ['_'] * len(self.phrase)
+            for c in filter(lambda x: not is_letter(x), self.phrase):
+                self._solve(c)
+            self.lives = self.phrases[self.phrase]
+            self.missed = ""
 
-            def _output_state():
-                display = '"{0}", guesses left: {1}'.format(state, guesses)
-                if len(missed) > 0:
-                    display += " , missed: {0}".format(missed)
-                print(display)
-                
-            while guesses > 0:
-                _output_state()
-                guess = _ask('Guess a letter:', IsLetter,
-                             'Enter one English letter.')
-                guesses -= 1
-                
+            display.game_state()
+            while True:
+                guess = display.ask('Guess a letter:',
+                                    is_new_letter(self.state, self.missed),
+                                    '  Enter one new English letter.').lower()
 
-            print(phrase)
-            if not self._askIfEnd():
+                if guess in self.phrase_lowered:
+                    self._solve(guess)
+                else:
+                    self.lives -= 1
+                    self.missed += guess
+
+                display.game_state()
+
+                if '_' not in self.state:
+                    display.win()
+                    break
+                elif self.lives == 0:
+                    display.lose()
+                    break
+
+            if not self._ask_if_end():
                 break
+        display.goodbye()
+
+    def _solve(self, guess):
+        i = 0
+        for c in self.phrase_lowered:
+            if c == guess:
+                self.state[i] = self.phrase[i]
+            i += 1
 
     def _ask_if_end(self):
-        endIf = { 'y' : True, 'n' : False }
-        ans = _ask('Would you like to play again? (y/n):',
-                   IsYN, 'Enter (y/n).')
-        return endIf[ans]
+        ans = display.ask('Would you like to play again? (y/n):',
+                          is_yn, 'Enter (y/n)')
+        return end_if[ans]
 
 
 if __name__ == '__main__':
