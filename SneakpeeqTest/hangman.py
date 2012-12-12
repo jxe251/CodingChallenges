@@ -1,8 +1,12 @@
 #!/usr/bin/env python3.2
+aimode = True
 
 from random import choice
 from string import ascii_letters
-import simpledisplay as display
+if aimode:
+    import aidisplay as display
+else:
+    import simpledisplay as display
 
 testPath = 'phrases1.csv'
 
