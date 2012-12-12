@@ -28,6 +28,9 @@ is_new_letter = lambda guessed, state: (
                 )
 
 class Hangman():
+    guess_letter_question = 'Guess a letter:'
+    play_again_question = 'Would you like to play again? (y/n):'
+
     def __init__(self, path):
         self.phrases = {}
         inFile = open(path, 'rt')
@@ -45,22 +48,21 @@ class Hangman():
 
     def _gameloop(self):
         while True:
-            self.phrase = choice(list(self.phrases.keys()))
-            self.phrase_lowered = self.phrase.lower()
-            self.state = ['_'] * len(self.phrase)
-            for c in filter(lambda x: not is_letter(x), self.phrase):
-                self._solve(c)
-            self.lives = self.phrases[self.phrase]
+            self._phrase = choice(list(self.phrases))
+            self._phrase_lowered = self._phrase.lower()
+            self.state = ['_'] * len(self._phrase)
+            self._solve_positions(lambda c: not is_letter(c))
+            self.lives = self.phrases[self._phrase]
             self.missed = ""
 
             display.game_state()
             while True:
-                guess = display.ask('Guess a letter:',
+                guess = display.ask(Hangman.guess_letter_question,
                                     is_new_letter(self.state, self.missed),
                                     '  Enter one new English letter.').lower()
 
-                if guess in self.phrase_lowered:
-                    self._solve(guess)
+                if guess in self._phrase_lowered:
+                    self._solve_positions(lambda c: guess == c)
                 else:
                     self.lives -= 1
                     self.missed += guess
@@ -71,22 +73,22 @@ class Hangman():
                     display.win()
                     break
                 elif self.lives == 0:
-                    display.lose()
+                    display.lose(self._phrase)
                     break
 
             if not self._ask_end():
                 break
         display.goodbye()
 
-    def _solve(self, guess):
+    def _solve_positions(self, where):
         i = 0
-        for c in self.phrase_lowered:
-            if c == guess:
-                self.state[i] = self.phrase[i]
+        for c in self._phrase_lowered:
+            if where(c):
+                self.state[i] = self._phrase[i]
             i += 1
 
     def _ask_end(self):
-        ans = display.ask('Would you like to play again? (y/n):',
+        ans = display.ask(Hangman.play_again_question,
                           is_yn, 'Enter (y/n)')
         return end_if[ans]
 

@@ -3,8 +3,7 @@ game = None
 def title():
     print("===========")
     print("  Hangman  ")
-    print("===========")
-    print()
+    print("===========\n")
 
 def game_state():
     disp_state = ' '.join(game.state)
@@ -25,12 +24,10 @@ def message(msg):
     print(msg)
 
 def win():
-    print()
-    print("You got the answer!")
+    print("\nYou got the answer!\n")
 
-def lose():
-    print()
-    print("The answer was:", game.phrase)
+def lose(phrase):
+    print("\nThe answer was:\n%s\n" % phrase)
 
 def goodbye():
     print("Goodbye!")
