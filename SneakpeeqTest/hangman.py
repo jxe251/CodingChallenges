@@ -1,6 +1,7 @@
 #!/usr/bin/env python3.2
 aimode = True
 
+from sys import argv
 from random import choice
 from string import ascii_letters
 if aimode:
@@ -8,7 +9,10 @@ if aimode:
 else:
     import simpledisplay as display
 
-testPath = 'phrases1.csv'
+if len(argv) < 2:
+    print('No phrase list provided! Exiting...')
+    exit(0)
+filePath = argv[1]
 
 def keyboardexit(method):
     def wrapper(*args, **kw):
@@ -36,9 +40,12 @@ class Hangman():
     play_again_question = 'Would you like to play again? (y/n):'
 
     def __init__(self, path):
+        display.game = self
         self.phrases = {}
         inFile = open(path, 'rt')
         for line in iter(inFile):
+            if line.count('|') != 1:
+                continue
             phrase, lives = map(lambda x: x.strip(), line.split('|'))
             if not self._is_valid(phrase, lives):
                 continue
@@ -46,8 +53,10 @@ class Hangman():
 
     @keyboardexit
     def Start(self):
-        display.game = self
         display.title()
+        if len(self.phrases) == 0:
+            display.message('No phrases in phrase list found! Exiting...')
+            return
         self._gameloop()
 
     def _gameloop(self):
@@ -109,5 +118,5 @@ class Hangman():
 
 
 if __name__ == '__main__':
-    game = Hangman(testPath)
+    game = Hangman(filePath)
     game.Start()
