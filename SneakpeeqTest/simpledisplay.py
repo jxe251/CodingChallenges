@@ -4,6 +4,7 @@ def title():
     print("===========")
     print("  Hangman  ")
     print("===========")
+    print()
 
 def game_state():
     disp_state = ' '.join(game.state)

@@ -4,9 +4,9 @@ from random import choice
 from string import ascii_letters
 import simpledisplay as display
 
-path = 'phrases1.csv'
+testPath = 'phrases1.csv'
 
-def _keyboard_exit(method):
+def keyboardexit(method):
     def wrapper(*args, **kw):
         try:
             return method(*args, **kw)
@@ -27,22 +27,21 @@ is_new_letter = lambda guessed, state: (
                     )
                 )
 
-class Hangman:
-    phrases = {}
-
+class Hangman():
     def __init__(self, path):
+        self.phrases = {}
         inFile = open(path, 'rt')
         for line in iter(inFile):
             phrase, lives = map(lambda x: x.strip(), line.split('|'))
             self.phrases[phrase] = int(lives)
 
-    @_keyboard_exit
+    @keyboardexit
     def Start(self):
         display.game = self
         display.title()
-        self._game_loop()
+        self._gameloop()
 
-    def _game_loop(self):
+    def _gameloop(self):
         while True:
             self.phrase = choice(list(self.phrases.keys()))
             self.phrase_lowered = self.phrase.lower()
@@ -73,7 +72,7 @@ class Hangman:
                     display.lose()
                     break
 
-            if not self._ask_if_end():
+            if not self._ask_end():
                 break
         display.goodbye()
 
@@ -84,12 +83,12 @@ class Hangman:
                 self.state[i] = self.phrase[i]
             i += 1
 
-    def _ask_if_end(self):
+    def _ask_end(self):
         ans = display.ask('Would you like to play again? (y/n):',
                           is_yn, 'Enter (y/n)')
         return end_if[ans]
 
 
 if __name__ == '__main__':
-    game = Hangman(path)
+    game = Hangman(testPath)
     game.Start()
