@@ -33,7 +33,9 @@ class Hangman():
         inFile = open(path, 'rt')
         for line in iter(inFile):
             phrase, lives = map(lambda x: x.strip(), line.split('|'))
-            self.phrases[phrase] = int(lives)
+            if not self._is_valid(phrase, lives):
+                continue
+            self.phrases[phrase.strip()] = int(lives)
 
     @keyboardexit
     def Start(self):
@@ -87,6 +89,17 @@ class Hangman():
         ans = display.ask('Would you like to play again? (y/n):',
                           is_yn, 'Enter (y/n)')
         return end_if[ans]
+
+    def _is_valid(self, phrase, lives):
+        if len(phrase.strip()) == 0 or len(lives.strip()) == 0:
+            return false
+        if '_' in phrase:
+            return False
+        try:
+            int(lives)
+        except ValueError:
+            return False
+        return True
 
 
 if __name__ == '__main__':
