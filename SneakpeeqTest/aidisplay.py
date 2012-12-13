@@ -58,8 +58,9 @@ def _ai_guess():
         candidates = set(game.phrases)
         unguessed = set(ascii_lowercase)
 
-    regex = ['.' if c == '_' else escape(c) for c in game.state] + ['\Z']
-    regex = re.compile(''.join(regex))
+    wild = '[%s]' % ''.join(unguessed)
+    regex = [wild if c == '_' else escape(c) for c in game.state] + ['\Z']
+    regex = re.compile(''.join(regex), re.IGNORECASE)
 
     candidates = {phrase for phrase in candidates if regex.match(phrase)}
     
