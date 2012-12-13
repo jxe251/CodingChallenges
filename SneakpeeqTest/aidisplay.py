@@ -10,7 +10,8 @@ guess = ''
 
 escape = lambda c: c if is_letter(c) else '\\%s' % c
 lettercnt = lambda phrase: Counter(c.lower() for c in phrase if is_letter(c))
-
+letterlwr = lambda phrase: [c.lower() for c in phrase if is_letter(c)]
+make_let = lambda c: dict(l=c, phrases=0, count=0, pos=[0]*len(game.state), entropy=float('inf'))
 def title():
     print("===========")
     print("  Hangman  ")
@@ -55,11 +56,13 @@ def goodbye():
     print("Goodbye!")
 
 def _ai_guess():
+    use_entropy = False
     global candidates
     global unguessed
     global guess
     if candidates == None:
-        candidates = {phrase:lettercnt(phrase) for phrase in game.phrases}
+        letterize = letterlwr if use_entropy else lettercnt
+        candidates = {phrase:letterize(phrase) for phrase in game.phrases}
         unguessed = set(ascii_lowercase)
         guess = ''
 
@@ -68,17 +71,34 @@ def _ai_guess():
     regex = re.compile(''.join(regex), re.IGNORECASE)
 
     candidates = {p:candidates[p] for p in candidates if regex.match(p)}
-    
-    letters = [dict(l=c, phrases=0, count=0) for c in unguessed]
+    letters = [make_let(c) for c in unguessed]
     lethash = {let['l']:let for let in letters}
 
-    for phrase in candidates:
-        del candidates[phrase][guess]
-        for c in candidates[phrase]:
-            lethash[c]['count'] += candidates[phrase][c]
-            lethash[c]['phrases'] += 1
-    #entropy?
+    if use_entropy:
+        for phrase in candidates:
+            i = 0
+            seenbefore = set()
+            for c in candidates[phrase]:
+                if c not in lethash:
+                    continue
+                lethash[c]['count'] += 1
+                lethash[c]['pos'][i] += 1
+                if c not in seenbefore:
+                    lethash[c]['phrases'] += 1
+                    seenbefore.add(c)
+                i += 1
+        for let in letters:
+            let['entropy'] = sum(count**2 for count in let['pos'])
+    else:
+        for phrase in candidates:
+            del candidates[phrase][guess]
+            for c in candidates[phrase]:
+                lethash[c]['count'] += candidates[phrase][c]
+                lethash[c]['phrases'] += 1
+
     letters.sort(key=lambda let: let['count'], reverse=True)
+    if use_entropy:
+        letters.sort(key=lambda let: let['entropy'])
     letters.sort(key=lambda let: let['phrases'], reverse=True)
 
     guess = letters[0]['l']
