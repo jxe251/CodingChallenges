@@ -1,12 +1,15 @@
 import re
+from collections import Counter
 from string import ascii_lowercase
 from hangman import is_letter
 
 game = None
 candidates = None
 unguessed = set(ascii_lowercase)
+guess = ''
 
 escape = lambda c: c if is_letter(c) else '\\%s' % c
+lettercnt = lambda phrase: Counter(c.lower() for c in phrase if is_letter(c))
 
 def title():
     print("===========")
@@ -54,24 +57,26 @@ def goodbye():
 def _ai_guess():
     global candidates
     global unguessed
+    global guess
     if candidates == None:
-        candidates = set(game.phrases)
+        candidates = {phrase:lettercnt(phrase) for phrase in game.phrases}
         unguessed = set(ascii_lowercase)
+        guess = ''
 
     wild = '[%s]' % ''.join(unguessed)
     regex = [wild if c == '_' else escape(c) for c in game.state] + ['\Z']
     regex = re.compile(''.join(regex), re.IGNORECASE)
 
-    candidates = {phrase for phrase in candidates if regex.match(phrase)}
+    candidates = {p:candidates[p] for p in candidates if regex.match(p)}
     
     letters = [dict(l=c, phrases=0, count=0) for c in unguessed]
+    lethash = {let['l']:let for let in letters}
 
-    for let in letters:
-        for phrase in candidates:
-            count = phrase.count(let['l'])
-            let['phrases'] += 1 if count > 0 else 0
-            let['count'] += count
-
+    for phrase in candidates:
+        del candidates[phrase][guess]
+        for c in candidates[phrase]:
+            lethash[c]['count'] += candidates[phrase][c]
+            lethash[c]['phrases'] += 1
     #entropy?
     letters.sort(key=lambda let: let['count'], reverse=True)
     letters.sort(key=lambda let: let['phrases'], reverse=True)
