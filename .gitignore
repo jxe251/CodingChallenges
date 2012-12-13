@@ -1,0 +1,5 @@
+*.vim
+*.o
+*.swp
+a.out
+__pycache__/
