@@ -102,7 +102,7 @@ class Hangman():
 
     def _ask_end(self):
         ans = display.ask(Hangman.play_again_question,
-                          is_yn, 'Enter (y/n)')
+                          is_yn, '  Enter (y/n)')
         return end_if[ans]
 
     def _is_valid(self, phrase, lives):

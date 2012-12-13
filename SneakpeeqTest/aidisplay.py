@@ -6,7 +6,7 @@ from hangman import is_letter
 game = None
 candidates = None
 unguessed = set(ascii_lowercase)
-guess = ''
+prevguess = ''
 
 escape = lambda c: c if is_letter(c) else '\\%s' % c
 lettercnt = lambda phrase: Counter(c.lower() for c in phrase if is_letter(c))
@@ -18,11 +18,11 @@ def title():
     print("===========")
     print("\nThis game is running in AI mode.")
     print("Press <Ctrl-c> to quit at any time.")
-    input("Press Enter to continue.\n")
+    input("Press Enter to continue.")
 
 def game_state():
     disp_state = ' '.join(game.state)
-    print("Secret phrase:", disp_state)
+    print("\nSecret phrase:", disp_state)
     print("Lives left:", game.lives)
     print("Missed:", game.missed)
 
@@ -35,7 +35,6 @@ def ask(question, is_valid, try_again_msg):
         if is_valid(ret):
             break
         print(try_again_msg)
-    print()
 
     if question == game.play_again_question and ret == 'y':
         global candidates
@@ -53,18 +52,18 @@ def lose(phrase):
     print("\nThe answer was:\n%s\n" % phrase)
 
 def goodbye():
-    print("Goodbye!")
+    print("\nGoodbye!")
 
 def _ai_guess():
     use_entropy = False
     global candidates
     global unguessed
-    global guess
+    global prevguess
     if candidates == None:
         letterize = letterlwr if use_entropy else lettercnt
         candidates = {phrase:letterize(phrase) for phrase in game.phrases}
         unguessed = set(ascii_lowercase)
-        guess = ''
+        prevguess = ''
 
     wild = '[%s]' % ''.join(unguessed)
     regex = [wild if c == '_' else escape(c) for c in game.state] + ['\Z']
@@ -91,7 +90,7 @@ def _ai_guess():
             let['entropy'] = sum(count**2 for count in let['pos'])
     else:
         for phrase in candidates:
-            del candidates[phrase][guess]
+            del candidates[phrase][prevguess]
             for c in candidates[phrase]:
                 lethash[c]['count'] += candidates[phrase][c]
                 lethash[c]['phrases'] += 1
@@ -103,5 +102,8 @@ def _ai_guess():
 
     guess = letters[0]['l']
     unguessed -= set(guess)
+    prevguess = guess
+
+    print("Guessing:", guess)
     return guess
 
