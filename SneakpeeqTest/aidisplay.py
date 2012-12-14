@@ -55,7 +55,7 @@ def goodbye():
     print("\nGoodbye!")
 
 def _ai_guess():
-    use_entropy = False
+    use_entropy = True
     global candidates
     global unguessed
     global prevguess
@@ -102,7 +102,9 @@ def _rankletters(candidates, unguessed, use_entropy=False):
                     seenbefore.add(c)
                 i += 1
         for let in letters:
-            let['entropy'] = sum(count**2 for count in let['pos'])
+            if let['count'] != 0:
+                sumsquares = sum(count**2 for count in let['pos'])
+                let['entropy'] = sumsquares / let['count']**2
     else:
         for phrase in candidates:
             del candidates[phrase][prevguess]
