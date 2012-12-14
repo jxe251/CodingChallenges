@@ -1,19 +1,9 @@
 #!/usr/bin/env python3.2
-aimode = True
 """Implement the classic Hangman game."""
 
 from sys import argv
 from random import choice
 from string import ascii_letters
-if aimode:
-    import aidisplay as display
-else:
-    import simpledisplay as display
-
-if len(argv) < 2:
-    print('No phrase list provided! Exiting...')
-    exit(0)
-filePath = argv[1]
 
 def keyboardexit(method):
     """Decorate a method to handle <ctrl-c> interrupts."""
@@ -42,7 +32,7 @@ class Hangman():
     guess_letter_question = 'Guess a letter:'
     play_again_question = 'Would you like to play again? (y/n):'
 
-    def __init__(self, path):
+    def __init__(self, path, aimode=False):
         """Load a list of phrase/score pairs at <path>.
         Pairs are delimited by newlines and take the form:
             <phrase>|<integer score>
@@ -50,6 +40,11 @@ class Hangman():
         Any character that's not an English letter is considered punctuation.
         Set aimode to True to let the AI play the game.
         """
+        global display
+        if aimode:
+            import aidisplay as display
+        else:
+            import simpledisplay as display
         display.game = self
         self.phrases = {}
         inFile = open(path, 'rt')
@@ -129,5 +124,8 @@ class Hangman():
 
 
 if __name__ == '__main__':
-    game = Hangman(filePath)
+    if len(argv) < 2:
+        print('No phrase list provided! Exiting...')
+        exit(0)
+    game = Hangman(argv[1], True)
     game.Start()
