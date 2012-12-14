@@ -1,1 +1,130 @@
-first consider all punctuation and spaces as part of the phrase
+===========
+AI Hangman
+12-2012
+Kevin Cheng
+===========
+Introduction
+
+The game is in 'hangman.py'. The game loads either 'aidisplay.py' or
+'simpledisplay.py' to run in AI mode or Human mode, respectively.
+Select one or the other by setting the 'aimode' boolean flag.
+
+Load the game and a dictionary phrase by:
+
+ ./hangman.py [file path]
+
+======
+Strategy
+
+There are three strategies by which I determine the next best letter to
+guess:
+
+(1) The number of candidate phrases a letter appears in
+(2) How even in distribution a letter's position is throughout the phrases
+(3) The total count of a letter's occurences within candidate phrases
+
+The first minimizes the chance of making a wrong guess by a large margin.
+Since we are afforded as many correct guesses as we need to win the game,
+but are only penalized by making an incorrect guess, this strategy
+greedily and effectively avoids making bad guesses.
+
+The second breaks ties according to a letter's positions in the phrases.
+Although it won't help prevent the next guess from being a bad one, it
+prioritizes choosing letters that help narrow down candidate phrases
+more quickly in future turns, preventing future bad guesses. This strategy
+is demonstrated in 'phrases3.csv' and 'phrases4.csv' by choosing 'a' over
+'b'. The current implementation is not optimal though, as this algorithm
+fails to do the same in 'phrases5.csv'
+
+Lastly, we can break ties again by using the total count. All things
+being equal, we might as well attempt to solve for as many spaces as
+possible in hopes that having fewer unknowns remaining will mean fewer
+chances at future bad guesses.
+
+======
+Complexity
+
+For N = the total number of phrases
+For M = the average length per phrase
+
+Time  Memory(add'l)    Component
+
+O(N*M)   O(N*M)     Hangman.__init__(), Hangman.phrases, per instance
+O(N+M)   O(M)       Hangman._gameloop() outer loop, per round
+O(M)     O(1)       Hangman._solve_positions(), per guess
+O(M)     O(M)       aidisplay._makeregex(), per guess
+O(N*M)   O(1)       aidisplay._rankletters(), per guess
+O(N*M)   O(N*M)     aidisplay._ai_guess(), aidisplay.candidates, per round
+
+I'm making an assumption that applying the regex match in
+aidisplay._ai_guess() is O(M). If Python's regex is not implemented in
+such a way, the simple match operation could be replaced with a simple
+string search that would be O(M) anyway.
+
+======
+Questions
+
+1. Because the core engine that runs the game is separate from the module
+that displays to and interacts with the user, all that would be needed is
+a GUI module that implements the neccessary display functions.
+   I always wanted to know how programs were able to "animate" loading
+bars in the terminal, so I actually spent some time (too much!) writing a
+'display.py' that would "draw" to stdout rather than just spit out print()
+lines. It's incomplete, so I have not included it with my submission.
+
+2. Aside from redesigning the gameplay, I suppose each game would run as
+its own instance of Hangman. An online multiplayer game would need to
+handle network synchronization issues as well.
+   I've limited experience handling such issues, but I understand that
+all the user interaction will have to be done asynchronously. I would try
+to organize the implementation into its own module so that the display
+module can continue to act as an API for Hangman class.
+   I am unfamiliar with the intricacies involved in trying to scale out
+web applications. Since this is such a simple game and each game runs
+independent of every other, each instance can be load balanced onto other
+servers if/when needed. A single static phrase dictionary per server
+could be used instead of having every instance load its own. Being a just
+a collection of English phrases, I don't think there'd be a problem with
+just loading all of it in memory.
+
+3. Each server is already storing at least one copy of the phrase
+dictionary, presumably in a hash table. This hash table can be made to be
+threadsafe so use counts can be added as they are played. This method
+would then require a periodic sort/update, and the counts have no time
+awareness. The periodic sort/update could be avoided with an ordered hash
+table, but I think those might not be threadsafe.
+   A hashed LRU cache could be used to store chosen phrases. This would
+also require some periodic sort/update, but at least the timeframe could
+be known. In addition, this allows old data to expire automatically as
+new data is inserted.
+   Using a heap would allow a more persistent 'always sorted' structure,
+but since each insert/delete would be O(logn), it might be a good idea
+to buffer operations.
+
+======
+Refinements
+
+In addition to refining (2) to cover cases such as in 'phrases5.csv',
+there is room for improvement in (1) as well. Instead of just greedily
+selecting the one letter that appears in the most candidate phrases, it
+could continue analyzing and consider what _next_ letters would appear in
+the most phrases as well. This provides an extra level of 'foresight',
+determining which next _two_ consecutive letter picks would give the most
+matching phrases. Of course, this could be extended all the way through
+the length of the candidate phrases, but the runtime would most certainly
+be the exponential O(G^M), for G = the number of potential guesses.
+
+======
+Words AI Fails to Guess in WORDS.LST
+
+tophes
+tufas
+sandy
+pushed
+mulct
+sapped
+sites
+gulls
+lumpier
+mull
+coons
