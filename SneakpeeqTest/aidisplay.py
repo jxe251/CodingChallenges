@@ -1,17 +1,17 @@
 import re
 from collections import Counter
-from string import ascii_lowercase
-from hangman import is_letter
+from string import ascii_lowercase, ascii_letters
 
 game = None
 candidates = None
 unguessed = set(ascii_lowercase)
 prevguess = ''
 
+is_letter = lambda c: len(c) == 1 and c in ascii_letters
 escape = lambda c: c if is_letter(c) else '\\%s' % c
 lettercnt = lambda phrase: Counter(c.lower() for c in phrase if is_letter(c))
 letterlwr = lambda phrase: [c.lower() for c in phrase if is_letter(c)]
-make_let = lambda c: dict(l=c, phrases=0, count=0, pos=[0]*len(game.state), entropy=float('inf'))
+
 def title():
     print("===========")
     print("  Hangman  ")
@@ -65,11 +65,26 @@ def _ai_guess():
         unguessed = set(ascii_lowercase)
         prevguess = ''
 
+    #filter candidates
+    regex = _makeregex(unguessed)
+    candidates = {p:candidates[p] for p in candidates if regex.match(p)}
+    print("Number of candidates:", len(candidates))
+
+    guess = _rankletters(candidates, unguessed, use_entropy)[0]
+
+    unguessed -= set(guess)
+    prevguess = guess
+    print("Guessing:", guess)
+    return guess
+
+def _makeregex(unguessed):
     wild = '[%s]' % ''.join(unguessed)
     regex = [wild if c == '_' else escape(c) for c in game.state] + ['\Z']
-    regex = re.compile(''.join(regex), re.IGNORECASE)
+    return re.compile(''.join(regex), re.IGNORECASE)
 
-    candidates = {p:candidates[p] for p in candidates if regex.match(p)}
+def _rankletters(candidates, unguessed, use_entropy=False):
+    make_let = lambda c: dict(l=c, phrases=0, count=0,
+                              pos=[0]*len(game.state), entropy=float('inf'))
     letters = [make_let(c) for c in unguessed]
     lethash = {let['l']:let for let in letters}
 
@@ -100,10 +115,4 @@ def _ai_guess():
         letters.sort(key=lambda let: let['entropy'])
     letters.sort(key=lambda let: let['phrases'], reverse=True)
 
-    guess = letters[0]['l']
-    unguessed -= set(guess)
-    prevguess = guess
-
-    print("Guessing:", guess)
-    return guess
-
+    return [let['l'] for let in letters]

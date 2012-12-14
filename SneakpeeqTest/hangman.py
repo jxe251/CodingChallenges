@@ -1,5 +1,6 @@
 #!/usr/bin/env python3.2
 aimode = True
+"""Implement the classic Hangman game."""
 
 from sys import argv
 from random import choice
@@ -15,6 +16,7 @@ if len(argv) < 2:
 filePath = argv[1]
 
 def keyboardexit(method):
+    """Decorate a method to handle <ctrl-c> interrupts."""
     def wrapper(*args, **kw):
         try:
             return method(*args, **kw)
@@ -36,23 +38,32 @@ is_new_letter = lambda guessed, state: (
                 )
 
 class Hangman():
+    """Hangman game engine."""
     guess_letter_question = 'Guess a letter:'
     play_again_question = 'Would you like to play again? (y/n):'
 
     def __init__(self, path):
+        """Load a list of phrase/score pairs at <path>.
+        Pairs are delimited by newlines and take the form:
+            <phrase>|<integer score>
+        Neither '_' nor '|' are allowed in the phrase.
+        Any character that's not an English letter is considered punctuation.
+        Set aimode to True to let the AI play the game.
+        """
         display.game = self
         self.phrases = {}
         inFile = open(path, 'rt')
         for line in iter(inFile):
             if line.count('|') != 1:
                 continue
-            phrase, lives = map(lambda x: x.strip(), line.split('|'))
+            phrase, lives = (x.strip() for x in line.split('|'))
             if not self._is_valid(phrase, lives):
                 continue
-            self.phrases[phrase.strip()] = int(lives)
+            self.phrases[phrase] = int(lives)
 
     @keyboardexit
     def Start(self):
+        """Begin gameplay."""
         display.title()
         if len(self.phrases) == 0:
             display.message('No phrases in phrase list found! Exiting...')
@@ -106,7 +117,7 @@ class Hangman():
         return end_if[ans]
 
     def _is_valid(self, phrase, lives):
-        if len(phrase.strip()) == 0 or len(lives.strip()) == 0:
+        if len(phrase) == 0 or len(lives) == 0:
             return false
         if '_' in phrase:
             return False
